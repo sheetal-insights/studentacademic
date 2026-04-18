@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Burnout Companion</title>
+
+<style>
+:root {
+    --bg: #eef2f7;
+    --card: #ffffff;
+    --text: #333;
+    --primary: #4facfe;
+}
+
+body.dark {
+    --bg: #1e1e2f;
+    --card: #2c2c3e;
+    --text: #eee;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 230px;
+    height: 100vh;
+    background: linear-gradient(180deg, #4facfe, #00f2fe);
+    padding: 20px;
+    color: white;
+}
+
+.sidebar button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* MAIN */
+.main {
+    flex: 1;
+    padding: 20px;
+}
+
+.section {
+    display: none;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.active {
+    display: block;
+}
+
+.card {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f5f5f5;
+}
+
+/* TASK */
+.task.done {
+    text-decoration: line-through;
+    color: gray;
+}
+
+/* TIMER */
+.timer {
+    font-size: 2rem;
+}
+
+/* CALENDAR */
+#calendarGrid button {
+    margin: 3px;
+    padding: 10px;
+}
+
+/* RELAX */
+.relax-card {
+    padding: 10px;
+    background: #ddd;
+    margin: 5px 0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>🌿 Menu</h2>
+    <button onclick="showSection('home')">🏠 Home</button>
+    <button onclick="showSection('stress')">🧠 Stress</button>
+    <button onclick="showSection('tasks')">📋 Tasks</button>
+    <button onclick="showSection('deadlines')">📅 Deadlines</button>
+    <button onclick="showSection('focus')">⏳ Focus</button>
+    <button onclick="showSection('calendar')">📆 Calendar</button>
+    <button onclick="showSection('relax')">🇯🇵 Relax</button>
+    <button onclick="toggleDark()">🌙 Toggle Mode</button>
+</div>
+
+<div class="main">
+
+<!-- HOME -->
+<div id="home" class="section active">
+    <h1>🎓 Student Burnout Companion</h1>
+    <p>
+        This platform helps students manage academic stress, track tasks,
+        organize deadlines, and improve focus using scientifically proven techniques.
+    </p>
+
+    <div class="card">
+        <h3>✨ What You Can Do</h3>
+        <ul>
+            <li>Track your stress levels</li>
+            <li>Manage daily tasks</li>
+            <li>Plan assignments</li>
+            <li>Use focus timer</li>
+            <li>Practice relaxation techniques</li>
+        </ul>
+    </div>
+</div>
+
+<!-- STRESS -->
+<div id="stress" class="section">
+    <h2>🧠 Stress Analysis</h2>
+
+    <p>Move the slider to indicate your stress level.</p>
+
+    <input type="range" min="0" max="100" id="stressSlider">
+    <p id="stressText"></p>
+
+    <div class="card">
+        <h3>💡 Tips</h3>
+        <p>
+            • Take breaks regularly<br>
+            • Avoid multitasking<br>
+            • Sleep well<br>
+        </p>
+    </div>
+</div>
+
+<!-- TASKS -->
+<div id="tasks" class="section">
+    <h2>📋 Tasks</h2>
+
+    <input id="taskInput" placeholder="Enter task">
+    <button onclick="addTask()">Add</button>
+
+    <ul id="taskList"></ul>
+</div>
+
+<!-- DEADLINES -->
+<div id="deadlines" class="section">
+    <h2>📅 Deadlines</h2>
+
+    <input id="assName" placeholder="Assignment">
+    <input type="date" id="assDate">
+    <button onclick="addDeadline()">Add</button>
+
+    <ul id="deadList"></ul>
+</div>
+
+<!-- FOCUS -->
+<div id="focus" class="section">
+    <h2>⏳ Focus Mode</h2>
+
+    <div class="timer" id="timer">25:00</div>
+
+    <button onclick="startTimer()">Start</button>
+    <button onclick="resetTimer()">Reset</button>
+</div>
+
+<!-- CALENDAR -->
+<div id="calendar" class="section">
+    <h2>📆 Calendar</h2>
+    <div id="calendarGrid"></div>
+</div>
+
+<!-- RELAX -->
+<div id="relax" class="section">
+    <h2>🇯🇵 Relaxation</h2>
+
+    <div class="relax-card" onclick="showRelax('ikigai')">Ikigai</div>
+    <div class="relax-card" onclick="showRelax('forest')">Shinrin-yoku</div>
+    <div class="relax-card" onclick="showRelax('zazen')">Zazen</div>
+
+    <p id="relaxInfo"></p>
+</div>
+
+</div>
+
+<script>
+// NAVIGATION
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// DARK MODE
+function toggleDark() {
+    document.body.classList.toggle("dark");
+}
+
+// STRESS
+stressSlider.oninput = function() {
+    let v = this.value;
+    if (v < 30) stressText.innerText = "😊 Relaxed";
+    else if (v < 70) stressText.innerText = "😐 Moderate stress";
+    else stressText.innerText = "🔥 High stress!";
+};
+
+// TASKS (with storage)
+function addTask() {
+    let text = taskInput.value;
+    if (!text) return;
+
+    let li = document.createElement("li");
+    li.innerText = text;
+
+    li.onclick = () => li.classList.toggle("done");
+
+    let del = document.createElement("button");
+    del.innerText = "❌";
+    del.onclick = () => {
+        li.remove();
+        saveTasks();
+    };
+
+    li.appendChild(del);
+    taskList.appendChild(li);
+
+    saveTasks();
+    taskInput.value = "";
+}
+
+function saveTasks() {
+    localStorage.setItem("tasks", taskList.innerHTML);
+}
+
+taskList.innerHTML = localStorage.getItem("tasks") || "";
+
+// DEADLINES
+function addDeadline() {
+    let name = assName.value;
+    let date = assDate.value;
+
+    let li = document.createElement("li");
+    li.innerText = name + " - " + date;
+
+    let diff = (new Date(date) - new Date()) / (1000*3600*24);
+    if (diff < 2) li.style.color = "red";
+
+    deadList.appendChild(li);
+}
+
+// TIMER
+let time = 1500, interval;
+
+function startTimer() {
+    clearInterval(interval);
+    interval = setInterval(() => {
+        time--;
+        let m = Math.floor(time/60);
+        let s = time%60;
+        timer.innerText = `${m}:${s<10?'0'+s:s}`;
+        if (time<=0) {
+            clearInterval(interval);
+            alert("Break Time!");
+        }
+    },1000);
+}
+
+function resetTimer() {
+    time = 1500;
+    timer.innerText = "25:00";
+}
+
+// CALENDAR
+for (let i=1;i<=30;i++){
+    let d = document.createElement("button");
+    d.innerText = i;
+    d.onclick = ()=>d.style.background="orange";
+    calendarGrid.appendChild(d);
+}
+
+// RELAX
+function showRelax(type){
+    if(type==="ikigai") relaxInfo.innerText="Find purpose in small daily goals.";
+    if(type==="forest") relaxInfo.innerText="Spend time in nature.";
+    if(type==="zazen") relaxInfo.innerText="Sit quietly and breathe.";
+}
+</script>
+
+</body>
+</html>
